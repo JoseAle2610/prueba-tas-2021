@@ -1,11 +1,13 @@
 import {useState, useEffect} from 'react'
 import Badge from 'shared/Badge'
+import {v1 as uuid} from 'uuid'
 
 const Tienda = () => {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [productList, setProductList] = useState([])
   const [car, setCar] = useState([])
+  const [cant, setCant] = useState(1)
   const [sortLowest, setSortLowest] = useState(false)
   
   const filter = (e) => {
@@ -31,7 +33,17 @@ const Tienda = () => {
 
   const addToCar = (id) => {
     const product = products.find( element => element.id === id )
-    if (product.available) setCar([...car, id])
+    const newCar = product
+    car.id = uuid()
+    car.cant = cant
+    if (product.available) setCar([...car, newCar])
+    else alert('Este producto no esta disponible')
+  }
+
+  const deleteCar = (id) => {
+    const newCar = car.filter(element => element.id !== id)
+    console.log(newCar)
+    setCar(newCar)
   }
   
   useEffect(() => {
@@ -83,6 +95,7 @@ const Tienda = () => {
                 <th>Categorias</th>
                 <td>Imagen</td>
                 <th>Descripcion</th>
+                <th>Agragar</th>
               </tr>
             </thead>
             <tbody>
@@ -111,6 +124,7 @@ const Tienda = () => {
                   </td>
                   <td>{row.description}</td>
                   <td>
+                    <input type='number' placeholder='Cantidad' onChange={(e) => setCant(e.target.value)}/>
                     <button onClick={() => addToCar(row.id)}>Add to car</button>
                   </td>
                 </tr>
@@ -120,11 +134,19 @@ const Tienda = () => {
         </div>
       </div>
       <div className='card mt-3'>
+        <header className='card-header'>Carrito</header>
         <div className='card-body'>
           <ul className='list-group'>
-            {products.filter( element => {
-              
-            })}
+            {car.map((element)=> (
+              <li className='list-group-item' key={element.id}>
+                {`Nombre: ${element.name} - Descripcion: ${element.description} - Cantidad: ${element.cant}`}
+                <button className='btn btn-secondary btn-sm mx-5'
+                  onClick={() => deleteCar(element.id)}
+                >
+                  Eliminar del carrito
+                </button>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
