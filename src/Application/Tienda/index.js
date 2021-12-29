@@ -1,68 +1,37 @@
 import {useState, useEffect} from 'react'
 import Badge from 'shared/Badge'
-import {v1 as uuid} from 'uuid'
+import {
+  filterByName, 
+  sort,
+  filterByCategori
+} from 'services/Filter'
+import {
+  addProductCar,
+  deleteProductCar
+} from 'services/Car'
+import {
+  getProducts,
+  getCategories
+} from 'services/Fetch'
 
 const Tienda = () => {
-  const [products, setProducts] = useState([])
+  var products = []
   const [categories, setCategories] = useState([])
   const [productList, setProductList] = useState([])
   const [car, setCar] = useState([])
   const [cant, setCant] = useState(1)
   const [sortLowest, setSortLowest] = useState(false)
+
   
-  const filter = (e) => {
-    const value = e.target.value.toLowerCase()
-    const productsFilter = products.filter( text => text.name.toLowerCase().includes(value) )
-    setProductList(productsFilter)
-  }
-
-  const sort = () => {
-    const productsSorted = !sortLowest ? 
-      products.sort((a, b) => parseFloat(a.price) - parseFloat(b.price)) : 
-      products.sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
-    setSortLowest(!sortLowest)
-    setProductList(productsSorted)
-  }
-
-  const filterByCategorie = (e) => {
-    const value = e.target.value.toLowerCase()
-    const productsFilter = products.filter(element => element.categories.includes( parseInt(value)))
-    setProductList(productsFilter)
-    console.log(productsFilter)
-  }
-
-  const addToCar = (id) => {
-    const product = products.find( element => element.id === id )
-    const newCar = product
-    car.id = uuid()
-    car.cant = cant
-    if (product.available) setCar([...car, newCar])
-    else alert('Este producto no esta disponible')
-  }
-
-  const deleteCar = (id) => {
-    const newCar = car.filter(element => element.id !== id)
-    console.log(newCar)
-    setCar(newCar)
-  }
-  
-  useEffect(() => {
+  useEffect( async () => {
     let isSuscribed= true
-    const baseUrl = "https://my-json-server.typicode.com/TASNETWORK/Prueba-DJunior/"
-    fetch(`${baseUrl}products`)
-      .then(res => res.json())
-      .then(json => {
-        console.log(json)
-        if (isSuscribed) {
-          setProducts(json)
-          setProductList(json)
-        }
-      })
-    fetch(`${baseUrl}categories`)
-      .then(res => res.json())
-      .then(json => {
-        if (isSuscribed) setCategories(json)
-      })
+    if (isSuscribed) {
+      const productsFetch = getProducts()
+      const categoriesFetch = getCategories()
+      products = await productsFetch
+      setProductList(products)
+      setCategories( await categoriesFetch )
+    }
     return () => {isSuscribed = false}
   }, [])
 
@@ -70,14 +39,23 @@ const Tienda = () => {
     <main className='container-fluid py-3'>
       <div className='card'>
         <header className='card-header'>
-          <input type='text' placeholder='Nombre de producto' onChange={filter} />
-          <button onClick={sort}>
+          <input type='text' placeholder='Nombre de producto' 
+            onChange={(e) => setProductList(filterByName(e, products))} 
+          />
+          <button 
+            onClick={() => {
+              setProductList(sort(sortLowest, products))
+              setSortLowest(!sortLowest)
+            }}
+          >
             {!sortLowest ?
               "ordenar de menor a mayor" :
               "ordenar de mayor a menor"
             }
           </button>
-          <select onChange={filterByCategorie}>
+          <select 
+            onChange={ e => setProductList(filterByCategori(e, products))}
+          >
             {categories.map(element => (
               <option key={element.categori_id} value={element.categori_id}>{element.name}</option>
             ))}
@@ -125,7 +103,11 @@ const Tienda = () => {
                   <td>{row.description}</td>
                   <td>
                     <input type='number' placeholder='Cantidad' onChange={(e) => setCant(e.target.value)}/>
-                    <button onClick={() => addToCar(row.id)}>Add to car</button>
+                    <button 
+                      onClick={() => setCar(addProductCar(row.id, cant, car, products))}
+                    >
+                      Add to car
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -141,7 +123,7 @@ const Tienda = () => {
               <li className='list-group-item' key={element.id}>
                 {`Nombre: ${element.name} - Descripcion: ${element.description} - Cantidad: ${element.cant}`}
                 <button className='btn btn-secondary btn-sm mx-5'
-                  onClick={() => deleteCar(element.id)}
+                  onClick={() => setCar(deleteProductCar(element.id, car))}
                 >
                   Eliminar del carrito
                 </button>
