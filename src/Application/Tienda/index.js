@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react'
 import Badge from 'shared/Badge'
+import Card from 'shared/Card'
 import {
   filterByName, 
   sort,
@@ -15,7 +16,7 @@ import {
 } from 'services/Fetch'
 
 const Tienda = () => {
-  var products = []
+  const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [productList, setProductList] = useState([])
   const [car, setCar] = useState([])
@@ -23,22 +24,25 @@ const Tienda = () => {
   const [sortLowest, setSortLowest] = useState(false)
 
   
-  useEffect( async () => {
+  useEffect( () => {
     let isSuscribed= true
-    if (isSuscribed) {
-      const productsFetch = getProducts()
-      const categoriesFetch = getCategories()
-      products = await productsFetch
-      setProductList(products)
-      setCategories( await categoriesFetch )
+    const fetchData = async () => {
+      if (isSuscribed) {
+        const productsFetch = getProducts()
+        const categoriesFetch = getCategories()
+        setProducts(await productsFetch)
+        setProductList(await productsFetch)
+        setCategories( await categoriesFetch )
+      }
     }
+    fetchData()
     return () => {isSuscribed = false}
   }, [])
 
   return (
     <main className='container-fluid py-3'>
-      <div className='card'>
-        <header className='card-header'>
+      <Card header={
+        <div>
           <input type='text' placeholder='Nombre de producto' 
             onChange={(e) => setProductList(filterByName(e, products))} 
           />
@@ -60,9 +64,9 @@ const Tienda = () => {
               <option key={element.categori_id} value={element.categori_id}>{element.name}</option>
             ))}
           </select>
-        </header>
-        <div className='card-body table-responsive'>
-          <table className='table'>
+        </div>
+      }>
+        <table className='table'>
             <thead>
              <tr>
                 <th>id</th>
@@ -113,12 +117,9 @@ const Tienda = () => {
               ))}
             </tbody>
           </table> 
-        </div>
-      </div>
-      <div className='card mt-3'>
-        <header className='card-header'>Carrito</header>
-        <div className='card-body'>
-          <ul className='list-group'>
+      </Card>
+      <Card header='Carrito'>
+         <ul className='list-group'>
             {car.map((element)=> (
               <li className='list-group-item' key={element.id}>
                 {`Nombre: ${element.name} - Descripcion: ${element.description} - Cantidad: ${element.cant}`}
@@ -130,8 +131,7 @@ const Tienda = () => {
               </li>
             ))}
           </ul>
-        </div>
-      </div>
+      </Card>
     </main>
   )
 }
