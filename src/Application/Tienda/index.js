@@ -3,6 +3,7 @@ import Badge from 'shared/Badge'
 
 const Tienda = () => {
   const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
   const [productList, setProductList] = useState([])
   const [sortLowest, setSortLowest] = useState(false)
   
@@ -19,10 +20,18 @@ const Tienda = () => {
     setSortLowest(!sortLowest)
     setProductList(productsSorted)
   }
+
+  const filterByCategorie = (e) => {
+    const value = e.target.value.toLowerCase()
+    const productsFilter = products.filter(element => element.categories.includes( parseInt(value)))
+    setProductList(productsFilter)
+    console.log(productsFilter)
+  }
   
   useEffect(() => {
     let isSuscribed= true
-    fetch('https://my-json-server.typicode.com/TASNETWORK/Prueba-DJunior/products')
+    const baseUrl = "https://my-json-server.typicode.com/TASNETWORK/Prueba-DJunior/"
+    fetch(`${baseUrl}products`)
       .then(res => res.json())
       .then(json => {
         console.log(json)
@@ -30,6 +39,11 @@ const Tienda = () => {
           setProducts(json)
           setProductList(json)
         }
+      })
+    fetch(`${baseUrl}categories`)
+      .then(res => res.json())
+      .then(json => {
+        if (isSuscribed) setCategories(json)
       })
     return () => {isSuscribed = false}
   }, [])
@@ -45,6 +59,11 @@ const Tienda = () => {
               "ordenar de mayor a menor"
             }
           </button>
+          <select onChange={filterByCategorie}>
+            {categories.map(element => (
+              <option key={element.categori_id} value={element.categori_id}>{element.name}</option>
+            ))}
+          </select>
         </header>
         <div className='card-body table-responsive'>
           <table className='table'>
