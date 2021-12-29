@@ -3,8 +3,13 @@ import Badge from 'shared/Badge'
 
 const Tienda = () => {
   const [products, setProducts] = useState([])
-  //const [nameProduct, setNameProduct] = useState('')
-
+  const [productList, setProductList] = useState([])
+  
+  const filter = (e) => {
+    const value = e.target.value.toLowerCase()
+    const productsFilter = products.filter( text => text.name.toLowerCase().includes(value) )
+    setProductList(productsFilter)
+  }
   
   useEffect(() => {
     let isSuscribed= true
@@ -14,6 +19,7 @@ const Tienda = () => {
         console.log(json)
         if (isSuscribed) {
           setProducts(json)
+          setProductList(json)
         }
       })
     return () => {isSuscribed = false}
@@ -22,6 +28,9 @@ const Tienda = () => {
   return (
     <main className='container-fluid py-3'>
       <div className='card'>
+        <header className='card-header'>
+          <input type='text' placeholder='Nombre de producto' onChange={filter} />
+        </header>
         <div className='card-body table-responsive'>
           <table className='table'>
             <thead>
@@ -37,7 +46,7 @@ const Tienda = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map( row => (
+              {productList.map( row => (
                 <tr key={row.id}>
                   <td>{row.id}</td>
                   <td>{row.name}</td>
