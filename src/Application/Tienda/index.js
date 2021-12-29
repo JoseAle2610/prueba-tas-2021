@@ -5,6 +5,7 @@ const Tienda = () => {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [productList, setProductList] = useState([])
+  const [car, setCar] = useState([])
   const [sortLowest, setSortLowest] = useState(false)
   
   const filter = (e) => {
@@ -26,6 +27,11 @@ const Tienda = () => {
     const productsFilter = products.filter(element => element.categories.includes( parseInt(value)))
     setProductList(productsFilter)
     console.log(productsFilter)
+  }
+
+  const addToCar = (id) => {
+    const product = products.find( element => element.id === id )
+    if (product.available) setCar([...car, id])
   }
   
   useEffect(() => {
@@ -104,10 +110,22 @@ const Tienda = () => {
                     <img src={row.img} alt='ImageProduct'/>
                   </td>
                   <td>{row.description}</td>
+                  <td>
+                    <button onClick={() => addToCar(row.id)}>Add to car</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table> 
+        </div>
+      </div>
+      <div className='card mt-3'>
+        <div className='card-body'>
+          <ul className='list-group'>
+            {products.filter( element => {
+              
+            })}
+          </ul>
         </div>
       </div>
     </main>
